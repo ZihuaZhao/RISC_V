@@ -30,19 +30,11 @@ module id(
     input wire for2_i,
     input wire[4:0] for2_addr_i,
     input wire[31:0] for2_data_i,
-    //load problem
-    output reg load_stall,
     //jump problem
     output reg jump_o,
-    output reg[31:0] jump_addr_o,
-    //write back
-    input wire wb_i,
-    input wire[4:0] wb_addr_i
+    output reg[31:0] jump_addr_o
 );
 
-//load reg
-reg load_reg[31:0];
-integer i;
 //imm
 reg[31:0] imm_reg;
 //stall 
@@ -169,10 +161,6 @@ reg[31:0] inst_reg;
 
     always@(*) begin
         if(rst == 1'b1) begin 
-            for(i = 0 ; i < 32 ; i = i + 1) begin 
-                load_reg[i] = 1'b0;
-            end
-            load_stall = 1'b0;
             jump_o = 1'b0;
             jump_addr_o = 5'h0;
             reg1_o = 32'h0;
@@ -184,35 +172,12 @@ reg[31:0] inst_reg;
             pc_o = pc_reg;
             jump_o = 1'b0;
             jump_addr_o = 32'h0;
-            load_stall = 1'b0;
-            if(wb_i == 1'b1) begin
-                load_reg[wb_addr_i] = 1'b0;
-            end
             //forwarding issue
             if(reg1_read_o == 1'b1) begin
                 reg1_o = reg1_data_i;
-                if(for2_i == 1'b1 && reg1_addr_o == for2_addr_i) begin
-                    reg1_o = for2_data_i;
-                end
-                if(for1_i == 1'b1 && reg1_addr_o == for1_addr_i) begin
-                    reg1_o = for1_data_i;
-                end
             end
             if(reg2_read_o == 1'b1) begin
                 reg2_o = reg2_data_i;
-                if(for2_i == 1'b1 && reg2_addr_o == for2_addr_i) begin
-                    reg2_o = for2_data_i;
-                end
-                if(for1_i == 1'b1 && reg2_addr_o == for1_addr_i) begin 
-                    reg2_o = for1_data_i;
-                end
-            end
-            //load stall
-            if(reg1_read_o == 1'b1 && load_reg[reg1_addr_o] == 1'b1) begin
-                load_stall = 1'b1;
-            end
-            if(reg2_read_o == 1'b1 && load_reg[reg2_addr_o] == 1'b1) begin 
-                load_stall = 1'b1;
             end
             //jump problem
             if(opcode == `JAL) begin
@@ -258,25 +223,6 @@ reg[31:0] inst_reg;
                 jump_o = 1'b0;
                 jump_addr_o = 32'h0;
                 imm_o = 32'h0;
-            end
-                //load reg
-            /*if(wb_i == 1'b1) begin
-                load_reg[wb_addr_i] = 1'b0;
-            end
-            if((reg1_read_o == 1'b1 && load_reg[reg1_addr_o] == 1'b0) && (reg2_read_o == 1'b1 && load_reg[reg2_addr_o] == 1'b0)) begin
-                load_stall = 1'b0;
-            end
-            if((reg1_read_o == 1'b1 && load_reg[reg1_addr_o] == 1'b0) && reg2_read_o == 1'b0) begin
-                load_stall = 1'b0;
-            end
-            if(reg1_read_o == 1'b0 && (reg2_read_o == 1'b1 && load_reg[reg2_addr_o] == 1'b0)) begin
-                load_stall = 1'b0;
-            end
-            if(reg1_read_o == 1'b0 && reg2_read_o == 1'b0) begin
-                load_stall = 1'b0;
-            end*/
-            if(opcode == `L_command) begin
-                load_reg[wd_o] = 1'b1;
             end
         end
     end

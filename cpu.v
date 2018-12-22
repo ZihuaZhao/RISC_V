@@ -155,11 +155,8 @@ id id_mod(
   .for2_i(for2_en_wire),
   .for2_addr_i(for2_addr_wire),
   .for2_data_i(for2_data_wire),
-  .load_stall(id_stall_wire),
   .jump_o(jump_wire),
-  .jump_addr_o(jump_pc_wire),
-  .wb_i(wb_en_wire),
-  .wb_addr_i(wb_addr_wire)
+  .jump_addr_o(jump_pc_wire)
 );
 
 //
@@ -283,6 +280,7 @@ wire mem_stall_wire;
 wire[4:0] mem_wd_wire;
 wire mem_wreg_wire;
 wire[31:0] mem_wdata_wire;
+wire stall_1_wire;
 
 mem mem_mod(
   .rst(rst_in),
@@ -308,7 +306,8 @@ mem mem_mod(
   .wd_o(mem_wd_wire),
   .wreg_o(mem_wreg_wire),
   .wdata_o(mem_wdata_wire),
-  .finish(finish_wire)
+  .finish(finish_wire),
+  .stall_o(stall_1_wire)
 );
 
 //
@@ -317,6 +316,7 @@ mem mem_mod(
 wire memwb_wreg_wire;
 wire[4:0] memwb_wd_wire;
 wire[31:0] memwb_wdata_wire;
+wire stall_2_wire;
 
 mem_wb me_wb_mod(
   .clk(clk_in),
@@ -326,12 +326,15 @@ mem_wb me_wb_mod(
   .mem_wdata(mem_wdata_wire),
   .wb_wreg(memwb_wreg_wire),
   .wb_wd(memwb_wd_wire),
-  .wb_wdata(memwb_wdata_wire)
+  .wb_wdata(memwb_wdata_wire),
+  .stall_i(stall_1_wire),
+  .stall_o(stall_2_wire)
 );
 
 //
 //wb
 //
+wire wb_stall_wire;
 
 wb wb_mod(
   .rst(rst_in),
@@ -340,7 +343,9 @@ wb wb_mod(
   .wdata_i(memwb_wdata_wire),
   .wreg_o(wb_en_wire),
   .wd_o(wb_addr_wire),
-  .wdata_o(wb_data_wire)
+  .wdata_o(wb_data_wire),
+  .stall_i(stall_2_wire),
+  .stall_o(wb_stall_wire)
 );
 
 //
@@ -349,12 +354,12 @@ wb wb_mod(
 
 stall stall_mod(
   .rst(rst_in),
-  .id_stall_i(id_stall_wire),
   .mem_stall_i(mem_stall_wire),
   .stall1(stall1_wire),
   .stall2(stall2_wire),
   .stall3(stall3_wire),
-  .stall4(stall4_wire)
+  .stall4(stall4_wire),
+  .wb_stall_wire(wb_stall_wire)
 );
 
 endmodule

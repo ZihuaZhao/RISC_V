@@ -28,7 +28,8 @@ module mem(
     //wb
     output reg[4:0] wd_o,
     output reg wreg_o,
-    output reg[31:0] wdata_o
+    output reg[31:0] wdata_o,
+    output reg stall_o
 );
 
 reg[2:0] read_en_reg;
@@ -98,7 +99,9 @@ reg wreg_reg;
             mem_stall = 1'b0;
             wd_reg = 5'h0;
             wreg_reg = 1'h0;
+            stall_o = 1'b0;
         end else begin
+            stall_o = 1'b0;
             if(read_i == 3'b0 && write_i == 2'b0) begin
                 wd_o = wd_i;
                 wreg_o = wreg_i;
@@ -127,6 +130,7 @@ reg wreg_reg;
                     read_addr_reg = 32'h0;
                     read_o = 3'b0;
                     read_addr_o = 32'h0;
+                    stall_o = 1'b1;
                 end
             end
             if(finish != 1'b0) begin
@@ -140,6 +144,7 @@ reg wreg_reg;
                     write_o = 2'b0;
                     write_addr_o = 32'h0;
                     write_data_o = 32'h0;
+                    stall_o = 1'b1;
                 end
             end
         end

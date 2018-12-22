@@ -140,7 +140,7 @@ reg[31:0] write_data_reg;
                     read_en = 3;
                 end
                 3: begin
-                    if(read_num_reg == 3'b110) begin
+                    if(read_num_reg == 3'b011) begin
                         mem_addr_o = read_addr_reg + 2;
                         mem_wr_o = 1'b0;
                     end
@@ -158,7 +158,7 @@ reg[31:0] write_data_reg;
                     end
                 end
                 4: begin
-                    if(read_num_reg == 3'b110) begin
+                    if(read_num_reg == 3'b011) begin
                         mem_addr_o = read_addr_reg + 3;
                         mem_wr_o = 1'b0;
                     end
