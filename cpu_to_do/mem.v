@@ -12,6 +12,7 @@ module mem(
     input wire[31:0] read_data_i,
     output reg[2:0] read_o,
     output reg[31:0] read_addr_o,
+    input wire finish,
     //write
     input wire write_busy_i,
     output reg[1:0] write_o,
@@ -22,13 +23,19 @@ module mem(
     output reg mem_stall,
     //forwarding issue
     output reg for2_o,
-    output reg[5:0] for2_addr_o,
+    output reg[4:0] for2_addr_o,
     output reg[31:0] for2_data_o,
     //wb
     output reg[4:0] wd_o,
     output reg wreg_o,
     output reg[31:0] wdata_o
 );
+
+reg[2:0] read_en_reg;
+reg[31:0] read_addr_reg;
+reg[1:0] write_en_reg;
+reg[31:0] write_addr_reg;
+reg[31:0] write_data_reg;
 
     //ex_input
     always@(*) begin
@@ -41,37 +48,41 @@ module mem(
             for2_addr_o = 5'h0;
             for2_data_o = 32'H0;
             for2_o = 1'b0;
+            read_en_reg = 3'b0;
+            read_addr_reg = 32'h0;
+            write_en_reg = 2'b0;
+            write_addr_reg = 32'h0;
+            write_data_reg = 32'h0;
         end else begin
             for2_o = wreg_i;
             for2_addr_o = wd_i;
             for2_data_o = wdata_i;
-            if(read_i != 3'b0) begin
+            if(read_en_reg != 3'b0) begin
                 if(read_busy_i != 1'b1) begin
-                    read_o = read_i;
-                    read_addr_o = waddr_i;
+                    read_o = read_en_reg;
+                    read_addr_o = read_addr_reg;
                     write_o = 2'b0;
                     write_addr_o = 32'h0;
                     write_data_o = 32'h0;
                 end
             end
-            if(write_i != 2'b0) begin
+            if(write_en_reg != 2'b0) begin
                 if(write_busy_i != 1'b1) begin
-                    write_o = write_i;
-                    write_addr_o = waddr_i;
-                    write_data_o = wdata_i;
+                    write_o = write_en_reg;
+                    write_addr_o = write_addr_reg;
+                    write_data_o = write_data_reg;
                     read_o = 3'b0;
                     read_addr_o = 32'h0;
                 end
             end
-            if(stall == 1'b1) begin
-                read_o = 3'b0;
-                read_addr_o = 32'h0;
-                write_o = 2'b0;
-                write_addr_o = 32'h0;
-                write_data_o = 32'h0;
-                for2_addr_o = 5'h0;
-                for2_data_o = 32'H0;
-                for2_o = 1'b0;
+            if(read_i != 3'b0) begin
+                read_en_reg = read_i;
+                read_addr_reg = waddr_i;
+            end
+            if(write_i != 2'b0) begin
+                write_en_reg = write_i;
+                write_addr_reg = waddr_i;
+                write_data_reg = wdata_i;
             end
         end
     end
@@ -87,16 +98,35 @@ module mem(
             wd_o = wd_i;
             wreg_o = wreg_i;
             wdata_o = wdata_i;
-            if(read_i != 3'b0) begin
+            if(read_en_reg != 3'b0) begin
                 if(read_busy_i == 1'b1) begin
                     mem_stall = 1'b1;
-                end else begin
-                    wdata_o = read_data_i;
                 end
             end
-            if(write_i != 2'b0) begin
+            if(write_en_reg != 2'b0) begin
                 if(write_busy_i == 1'b1) begin
                     mem_stall = 1'b1;
+                end
+            end
+            if(finish != 1'b0) begin
+                if(read_busy_i != 1'b1) begin
+                    mem_stall = 1'b0;
+                    wdata_o = read_data_i;
+                    read_en_reg = 3'b0;
+                    read_addr_reg = 32'h0;
+                    read_o = 3'b0;
+                    read_addr_o = 32'h0;
+                end
+            end
+            if(finish != 1'b0) begin
+                if(write_busy_i != 1'b1) begin
+                    mem_stall = 1'b0;
+                    write_en_reg = 2'b0;
+                    write_addr_reg = 32'h0;
+                    write_data_reg = 32'h0;
+                    write_o = 2'b0;
+                    write_addr_o = 32'h0;
+                    write_data_o = 32'h0;
                 end
             end
             if(stall == 1'b1) begin

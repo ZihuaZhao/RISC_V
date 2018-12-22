@@ -15,6 +15,7 @@ module regfile(
     output reg[31:0] rdata2
 );
 //regs
+integer i;
 reg[31:0] regs[31:0];
 
     //write
@@ -22,6 +23,10 @@ reg[31:0] regs[31:0];
         if(rst == 1'b0) begin
             if(we != 1'b0) begin
                 regs[waddr] <= wdata;
+            end
+        end else begin
+            for(i = 0 ; i < 32 ; i = i + 1) begin
+                regs[i] <= 32'h0;
             end
         end
     end

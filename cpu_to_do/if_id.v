@@ -11,19 +11,25 @@ module if_id(
     //jump
     input wire jump_i
 );
+reg jump;
 
     always@(posedge clk) begin
         if(rst == 1'b1) begin
             id_pc <= 32'h0;
             id_inst <= 32'h0;
+            jump <= 1'b0;
         end else begin
+            if(jump_i == 1'b1) begin
+                jump <= 1'b1;
+            end
             if(if_busy_i == 1'b1) begin
                 id_pc <= 32'h0;
                 id_inst <= 32'h0;
             end else begin
-                if(jump_i == 1'b1) begin
+                if(jump == 1'b1) begin
                     id_pc <= 32'h0;
                     id_inst <= 32'h0;
+                    jump <= 1'b0;
                 end else begin
                     id_pc <= if_pc;
                     id_inst <= if_inst;

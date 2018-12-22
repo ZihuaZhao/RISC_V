@@ -6,7 +6,7 @@
 `define B_command 7'b1100011
 `define L_command 7'b0000011
 `define S_command 7'b0100011
-`define REG_IMM 7'b0100011
+`define REG_IMM 7'b0010011
 `define REG_REG 7'b0110011
 
 //funct

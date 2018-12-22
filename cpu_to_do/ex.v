@@ -86,7 +86,7 @@ module ex(
                 `ADDI:
                     wdata_o = imm_i + reg1_i;
                 `SLTI:
-                    if(reg1_i < imm_i) begin
+                    if($signed(reg1_i) < $signed(imm_i)) begin
                         wdata_o = 32'h1;
                     end else begin 
                         wdata_o = 32'h0;
@@ -104,6 +104,13 @@ module ex(
                 `ANDI:
                     wdata_o = reg1_i & imm_i;
                 `SLLI:begin
+                    wdata_o = reg1_i << imm_i[4:0];
+                end
+                `SRLI: begin
+                    wdata_o = reg1_i >> imm_i[4:0];
+                end
+                `SRAI: begin 
+                    wdata_o = $signed(reg1_i) >>> imm_i[4:0];
                 end
                 endcase
             end
@@ -119,7 +126,20 @@ module ex(
                     end
                 end
                 `SLL: begin
+                    wdata_o = reg1_i << reg2_i[4:0];
                 end
+                `SLT: begin
+                    wdata_o = ($signed(reg1_i) < $signed(reg2_i));
+                end
+                `SLTU: begin
+                    wdata_o = (reg1_i < reg2_i);
+                end
+                `SRL: begin
+                    wdata_o = reg1_i >> reg2_i[4:0];
+                end
+                `SRA: begin
+                    wdata_o = $signed(reg1_i) >>> reg2_i[4:0];
+                end    
                 `AND:
                     wdata_o = reg1_i & reg2_i;
                 `OR:

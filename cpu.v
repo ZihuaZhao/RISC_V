@@ -34,7 +34,7 @@ wire if_busy_wire;
 wire if_en_wire;
 wire [31:0] if_pc_wire;
 wire jump_wire;
-wire jump_pc_wire;
+wire [31:0] jump_pc_wire;
 
 pc_if pc_if_mod(
   .clk(clk_in),
@@ -60,6 +60,7 @@ wire[1:0] write_en_wire;
 wire[31:0] write_addr_wire;
 wire[31:0] write_data_wire;
 wire write_busy_wire;
+wire finish_wire;
 
 mem_controller mem_controller_mod(
   .clk(clk_in),
@@ -80,7 +81,8 @@ mem_controller mem_controller_mod(
   .write_i(write_en_wire),
   .write_addr_i(write_addr_wire),
   .write_data_i(write_data_wire),
-  .write_busy_o(write_busy_wire)
+  .write_busy_o(write_busy_wire),
+  .finish(finish_wire)
 );
 
 //
@@ -93,7 +95,7 @@ if_id if_id_mod(
   .clk(clk_in),
   .rst(rst_in),
   .if_busy_i(if_busy_wire),
-  .if_pc(if_pc_wire),
+  .if_pc(mem_pc_wire),
   .if_inst(if_data_wire),
   .id_pc(ifid_pc_wire),
   .id_inst(ifid_inst_wire),
@@ -107,8 +109,8 @@ wire[31:0] regfile_reg1_data_wire;
 wire[31:0] regfile_reg2_data_wire;
 wire regfile_reg1_en_wire;
 wire regfile_reg2_en_wire;
-wire[31:0] regfile_reg1_addr_wire;
-wire[31:0] regfile_reg2_addr_wire;
+wire[4:0] regfile_reg1_addr_wire;
+wire[4:0] regfile_reg2_addr_wire;
 wire[31:0] id_pc_wire;
 wire[31:0] id_reg1_wire;
 wire[31:0] id_reg2_wire;
@@ -305,7 +307,8 @@ mem mem_mod(
   .for2_data_o(for2_data_wire),
   .wd_o(mem_wd_wire),
   .wreg_o(mem_wreg_wire),
-  .wdata_o(mem_wdata_wire)
+  .wdata_o(mem_wdata_wire),
+  .finish(finish_wire)
 );
 
 //
@@ -353,21 +356,5 @@ stall stall_mod(
   .stall3(stall3_wire),
   .stall4(stall4_wire)
 );
-
-always @(posedge clk_in)
-  begin
-    if (rst_in)
-      begin
-      
-      end
-    else if (!rdy_in)
-      begin
-      
-      end
-    else
-      begin
-      
-      end
-  end
 
 endmodule
