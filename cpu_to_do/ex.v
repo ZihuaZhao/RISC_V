@@ -116,11 +116,10 @@ module ex(
             end
             `REG_REG:begin
                 case(funct_i)
-                `ADD:
+                `ADD: begin
                     if(imm_i == 7'b0) begin
                         wdata_o = reg1_i + reg2_i;
                     end
-                `SUB:begin
                     if(imm_i != 7'b0) begin
                         wdata_o = reg1_i - reg2_i;
                     end

@@ -95,16 +95,20 @@ reg[31:0] write_data_reg;
                 case(if_en)
                 1: begin
                     mem_addr_o = if_addr_reg;
+                    mem_wr_o = 1'b0;
                 end
                 2: begin
                     mem_addr_o = if_addr_reg + 1;
+                    mem_wr_o = 1'b0;
                 end
                 3: begin
                     mem_addr_o = if_addr_reg + 2;
+                    mem_wr_o = 1'b0;
                     if_data_reg[7:0] = mem_data_i;
                 end
                 4: begin
                     mem_addr_o = if_addr_reg + 3;
+                    mem_wr_o = 1'b0;
                     if_data_reg[15:8] = mem_data_i;
                 end
                 5: begin
@@ -125,14 +129,21 @@ reg[31:0] write_data_reg;
                 case(read_en)
                 1: begin
                     mem_addr_o = read_addr_reg;
+                    mem_wr_o = 1'b0;
                     read_en = 2;
                 end
                 2: begin
-                    mem_addr_o = read_addr_reg + 1;
+                    if(read_num_reg != 3'b001 && read_num_reg != 3'b100) begin
+                        mem_addr_o = read_addr_reg + 1;
+                        mem_wr_o = 1'b0;
+                    end
                     read_en = 3;
                 end
                 3: begin
-                    mem_addr_o = read_addr_reg + 2;
+                    if(read_num_reg == 3'b110) begin
+                        mem_addr_o = read_addr_reg + 2;
+                        mem_wr_o = 1'b0;
+                    end
                     if(read_num_reg == 3'b001 || read_num_reg == 3'b100) begin
                         read_data_o[7:0] = mem_data_i;
                         read_addr_reg = 32'h0;
@@ -140,13 +151,17 @@ reg[31:0] write_data_reg;
                         read_num_reg = 3'b000;
                         read_en = 0;
                         read_busy_o = 1'b0;
+                        finish = 1'b1;
                     end else begin
                         read_data_reg[7:0] = mem_data_i;
                         read_en = 4;
                     end
                 end
                 4: begin
-                    mem_addr_o = read_addr_reg + 3;
+                    if(read_num_reg == 3'b110) begin
+                        mem_addr_o = read_addr_reg + 3;
+                        mem_wr_o = 1'b0;
+                    end
                     if(read_num_reg == 3'b010 || read_num_reg == 3'b101) begin
                         read_data_o[15:8] = mem_data_i;
                         read_data_o[7:0] = read_data_reg[7:0];
@@ -155,6 +170,7 @@ reg[31:0] write_data_reg;
                         read_num_reg = 3'b000;
                         read_en = 0;
                         read_busy_o = 1'b0;
+                        finish = 1'b1;
                     end else begin
                         read_data_reg[15:8] = mem_data_i;
                         read_en = 5;
@@ -185,35 +201,43 @@ reg[31:0] write_data_reg;
                     write_en = 2;
                 end
                 2: begin
-                    mem_addr_o = write_addr_reg;
-                    mem_data_o = write_data_reg[15:8];
-                    mem_wr_o = 1'b1;
+                    if(write_num_reg != 2'b01) begin
+                        mem_addr_o = write_addr_reg;
+                        mem_data_o = write_data_reg[15:8];
+                        mem_wr_o = 1'b1;
+                    end
                     write_en = 3;
                 end
                 3: begin
-                    mem_addr_o = write_addr_reg;
-                    mem_data_o = write_data_reg[23:16];
-                    mem_wr_o = 1'b1;
-                    if(read_num_reg == 2'b01) begin
+                    if(write_num_reg == 2'b11) begin
+                        mem_addr_o = write_addr_reg;
+                        mem_data_o = write_data_reg[23:16];
+                        mem_wr_o = 1'b1;
+                    end
+                    if(write_num_reg == 2'b01) begin
                         write_addr_reg = 32'h0;
                         write_data_reg = 32'h0;
                         write_num_reg = 3'b000;
                         write_en = 0;
                         write_busy_o = 1'b0;
+                        finish = 1'b1;
                     end else begin
                         write_en = 4;
                     end
                 end
                 4: begin
-                    mem_addr_o = write_addr_reg;
-                    mem_data_o = write_data_reg[31:24];
-                    mem_wr_o = 1'b1;
-                    if(read_num_reg == 2'b10) begin
+                    if(write_num_reg == 2'b11) begin
+                        mem_addr_o = write_addr_reg;
+                        mem_data_o = write_data_reg[31:24];
+                        mem_wr_o = 1'b1;
+                    end
+                    if(write_num_reg == 2'b10) begin
                         write_addr_reg = 32'h0;
                         write_data_reg = 32'h0;
                         write_num_reg = 3'b000;
                         write_en = 0;
                         write_busy_o = 1'b0;
+                        finish = 1'b1;
                     end else begin
                         write_en = 5;
                     end

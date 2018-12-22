@@ -45,6 +45,10 @@ reg load_reg[31:0];
 integer i;
 //imm
 reg[31:0] imm_reg;
+//stall 
+reg stall_reg;
+reg[31:0] pc_reg;
+reg[31:0] inst_reg;
 
     always@(*) begin
         if(rst == 1'b1) begin
@@ -61,18 +65,29 @@ reg[31:0] imm_reg;
             wd_o = 5'h0;
             imm_reg = 32'h0;
             imm_o = 32'h0;
+            stall_reg = 1'b0;
+            pc_reg = 32'h0;
+            inst_reg = 32'h0;            
         end else begin
+            if(stall == 1'b0) begin
+                if(stall_reg == 1'b1) begin
+                    stall_reg = 1'b0;
+                end else begin
+                    pc_reg = pc_i;
+                    inst_reg = inst_i;
+                end
+            end
             reg1_read_o = 1'b0;
-            reg1_addr_o = inst_i[19:15];
+            reg1_addr_o = inst_reg[19:15];
             reg2_read_o = 1'b0;
-            reg2_addr_o = inst_i[24:20];
+            reg2_addr_o = inst_reg[24:20];
             //pc_o = pc_i;
             //reg1_o = 32'h0;
             //reg2_o = 32'h0;
-            opcode = inst_i[6:0];
-            funct = inst_i[14:12];
+            opcode = inst_reg[6:0];
+            funct = inst_reg[14:12];
             wreg_o = 1'b0;
-            wd_o = inst_i[11:7];
+            wd_o = inst_reg[11:7];
             imm_reg = 32'h0;
             imm_o = 32'h0;
             case(opcode)
@@ -80,59 +95,66 @@ reg[31:0] imm_reg;
                 reg1_read_o = 1'b0;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {inst_i[31:12] , 12'h0};
+                imm_reg = {inst_reg[31:12] , 12'h0};
             end
             `AUIPC: begin
                 reg1_read_o = 1'b0;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {inst_i[31:12] , 12'h0};
+                imm_reg = {inst_reg[31:12] , 12'h0};
             end
             `JAL: begin 
                 reg1_read_o = 1'b0;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {11'h0 , inst_i[31] , inst_i[19:12] , inst_i[20] , inst_i[30:21] , 1'b0};
+                imm_reg = {11'h0 , inst_reg[31] , inst_reg[19:12] , inst_reg[20] , inst_reg[30:21] , 1'b0};
             end
             `JALR: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
+                imm_reg = {20'h0 , inst_reg[31:20]};
             end
             `B_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b1;
                 wreg_o = 1'b0;
-                imm_reg = {20'h0 , inst_i[31] , inst_i[7] , inst_i[30:25] , inst_i[11:8]};
+                imm_reg = {20'h0 , inst_reg[31] , inst_reg[7] , inst_reg[30:25] , inst_reg[11:8]};
             end
             `L_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
+                imm_reg = {20'h0 , inst_reg[31:20]};
             end
             `S_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b1;
                 wreg_o = 1'b0;
-                imm_reg = {20'h0 , inst_i[31:25] , inst_i[11:7]};
+                imm_reg = {20'h0 , inst_reg[31:25] , inst_reg[11:7]};
             end
             `REG_IMM: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
+                imm_reg = {20'h0 , inst_reg[31:20]};
             end
             `REG_REG: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b1;
                 wreg_o = 1'b1;
-                imm_reg = {25'h0 , inst_i[31:26]};
+                imm_reg = {25'h0 , inst_reg[31:26]};
             end
             endcase
             imm_o = imm_reg;
             if(stall == 1'b1) begin
+                if(pc_i == 32'h0) begin
+                    stall_reg = 1'b1;
+                end else begin
+                    stall_reg = 1'b1;
+                    pc_reg = pc_i;
+                    inst_reg = inst_i;
+                end
                 wreg_o = 1'b0;
                 reg1_read_o = 1'b0;
                 reg2_read_o = 1'b0;
@@ -159,9 +181,13 @@ reg[31:0] imm_reg;
         end else begin
             reg1_o = 32'h0;
             reg2_o = 32'h0;
-            pc_o = pc_i;
+            pc_o = pc_reg;
             jump_o = 1'b0;
             jump_addr_o = 32'h0;
+            load_stall = 1'b0;
+            if(wb_i == 1'b1) begin
+                load_reg[wb_addr_i] = 1'b0;
+            end
             //forwarding issue
             if(reg1_read_o == 1'b1) begin
                 reg1_o = reg1_data_i;
@@ -191,36 +217,36 @@ reg[31:0] imm_reg;
             //jump problem
             if(opcode == `JAL) begin
                 jump_o = 1'b1;
-                jump_addr_o = pc_i + imm_reg;
+                jump_addr_o = pc_reg + imm_reg;
             end
             if(opcode == `JALR) begin
                 jump_o = 1'b1;
-                jump_addr_o = pc_i + imm_reg;
+                jump_addr_o = pc_reg + imm_reg;
                 jump_addr_o[0] = 1'b0;
             end
             if(opcode == `B_command) begin
                 if(funct == `BEQ) begin
                     if(reg1_o == reg2_o) begin
                         jump_o = 1'b1;
-                        jump_addr_o = pc_i + imm_reg;
+                        jump_addr_o = pc_reg + imm_reg;
                     end
                 end
                 if(funct == `BNE) begin 
                     if(reg1_o != reg2_o) begin 
                         jump_o = 1'b1;
-                        jump_addr_o = pc_i + imm_reg;
+                        jump_addr_o = pc_reg + imm_reg;
                     end
                 end
                 if(funct == `BLT || funct == `BLTU) begin
                     if(reg1_o < reg2_o) begin
                         jump_o = 1'b1;
-                        jump_addr_o = pc_i + imm_reg;
+                        jump_addr_o = pc_reg + imm_reg;
                     end
                 end
                 if(funct == `BGE || funct == `BGEU) begin
                     if(reg1_o >= reg2_o) begin
                         jump_o = 1'b1;
-                        jump_addr_o = pc_i + imm_reg;
+                        jump_addr_o = pc_reg + imm_reg;
                     end
                 end
             end
@@ -232,35 +258,25 @@ reg[31:0] imm_reg;
                 jump_o = 1'b0;
                 jump_addr_o = 32'h0;
                 imm_o = 32'h0;
-            end else begin
+            end
                 //load reg
-                if(wb_i == 1'b1) begin
-                    load_reg[wb_addr_i] = 1'b0;
-                end
-                if(load_stall == 1'b1) begin
-                    if(reg1_read_o == 1'b1) begin
-                        if(load_reg[reg1_addr_o] == 1'b0) begin
-                            if(reg2_read_o == 1'b0) begin
-                                load_stall = 1'b0;
-                            end else begin
-                                if(load_reg[reg2_addr_o] == 1'b0) begin
-                                    load_stall = 1'b0;
-                                end
-                            end
-                        end
-                    end else begin
-                        if(reg2_read_o == 1'b0) begin
-                            load_stall = 1'b0;
-                        end else begin
-                            if(load_reg[reg2_addr_o] == 1'b0) begin
-                                load_stall = 1'b0;
-                            end
-                        end
-                    end
-                end
-                if(opcode == `L_command) begin
-                    load_reg[wd_o] = 1'b1;
-                end
+            /*if(wb_i == 1'b1) begin
+                load_reg[wb_addr_i] = 1'b0;
+            end
+            if((reg1_read_o == 1'b1 && load_reg[reg1_addr_o] == 1'b0) && (reg2_read_o == 1'b1 && load_reg[reg2_addr_o] == 1'b0)) begin
+                load_stall = 1'b0;
+            end
+            if((reg1_read_o == 1'b1 && load_reg[reg1_addr_o] == 1'b0) && reg2_read_o == 1'b0) begin
+                load_stall = 1'b0;
+            end
+            if(reg1_read_o == 1'b0 && (reg2_read_o == 1'b1 && load_reg[reg2_addr_o] == 1'b0)) begin
+                load_stall = 1'b0;
+            end
+            if(reg1_read_o == 1'b0 && reg2_read_o == 1'b0) begin
+                load_stall = 1'b0;
+            end*/
+            if(opcode == `L_command) begin
+                load_reg[wd_o] = 1'b1;
             end
         end
     end
