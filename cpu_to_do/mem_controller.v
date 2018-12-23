@@ -202,7 +202,7 @@ reg[31:0] write_data_reg;
                 end
                 2: begin
                     if(write_num_reg != 2'b01) begin
-                        mem_addr_o = write_addr_reg;
+                        mem_addr_o = write_addr_reg + 1;
                         mem_data_o = write_data_reg[15:8];
                         mem_wr_o = 1'b1;
                     end
@@ -210,7 +210,7 @@ reg[31:0] write_data_reg;
                 end
                 3: begin
                     if(write_num_reg == 2'b11) begin
-                        mem_addr_o = write_addr_reg;
+                        mem_addr_o = write_addr_reg + 2;
                         mem_data_o = write_data_reg[23:16];
                         mem_wr_o = 1'b1;
                     end
@@ -227,7 +227,7 @@ reg[31:0] write_data_reg;
                 end
                 4: begin
                     if(write_num_reg == 2'b11) begin
-                        mem_addr_o = write_addr_reg;
+                        mem_addr_o = write_addr_reg + 3;
                         mem_data_o = write_data_reg[31:24];
                         mem_wr_o = 1'b1;
                     end
