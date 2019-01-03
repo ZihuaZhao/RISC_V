@@ -11,8 +11,6 @@ module ex(
     input wire[4:0] wd_i,
     input wire wreg_i,
     input wire[31:0] imm_i,
-    //stall
-    input wire stall,
     //mem
     output reg[2:0] read_o,//000:disable,001:LB,010:LH,011:LW,100:LBU,101:LHU
     output reg[1:0] write_o,//00:diable,01:SB,10:SH,11:SW
@@ -36,7 +34,6 @@ module ex(
             waddr_o = 32'h0;
             read_o = 3'b0;
             write_o = 2'b0;
-
             case(opcode_i)
             `LUI:
                 wdata_o = imm_i;
@@ -141,14 +138,6 @@ module ex(
                 endcase
             end
             endcase
-            if(stall == 1'b1) begin
-                read_o = 3'b0;
-                write_o = 2'b0;
-                wd_o = 5'b0;
-                wreg_o = 1'b0;
-                waddr_o = 32'h0;
-                wdata_o = 32'h0;
-            end
         end
     end
 

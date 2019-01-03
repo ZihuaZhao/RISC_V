@@ -19,7 +19,6 @@ module mem(
     output reg[31:0] write_addr_o,
     output reg[31:0] write_data_o,
     //stall
-    input wire stall,
     output reg mem_stall,
     //wb
     output reg[4:0] wd_o,
