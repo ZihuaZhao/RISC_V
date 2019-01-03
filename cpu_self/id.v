@@ -165,36 +165,54 @@ reg[31:0] imm_reg;
                         if(reg1_o == reg2_o) begin
                             jump_o = 1'b1;
                             jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                            jump_o = 1'b0;
+                            jump_addr_o = 32'h0;
                         end
                     end
                     if(funct == `BNE) begin 
                         if(reg1_o != reg2_o) begin 
                             jump_o = 1'b1;
                             jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                            jump_o = 1'b0;
+                            jump_addr_o = 32'h0;
                         end
                     end
                     if(funct == `BLT) begin
                        if($signed(reg1_o) < $signed(reg2_o)) begin
                             jump_o = 1'b1;
                             jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                            jump_o = 1'b0;
+                            jump_addr_o = 32'h0;
                         end
                     end
                     if(funct == `BLTU) begin
                         if((reg1_o) < (reg2_o)) begin
                              jump_o = 1'b1;
                              jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                             jump_o = 1'b0;
+                             jump_addr_o = 32'h0;
                         end
                     end
                     if(funct == `BGE) begin
                         if(reg2_o < reg1_o) begin
                             jump_o = 1'b1;
                             jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                            jump_o = 1'b0;
+                            jump_addr_o = 32'h0;
                         end
                     end
                     if(funct == `BGEU) begin
                        if($signed(reg2_o) < $signed(reg1_o)) begin
                             jump_o = 1'b1;
                             jump_addr_o = pc_i + imm_reg;
+                        end else begin
+                            jump_o = 1'b0;
+                            jump_addr_o = 32'h0;
                         end
                     end
                 end

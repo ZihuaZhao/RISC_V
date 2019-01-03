@@ -89,6 +89,7 @@ mem_controller mem_controller_mod(
 //
 //if_id
 //
+wire stall2_wire;
 wire[31:0] ifid_pc_wire;
 wire[31:0] ifid_inst_wire;
 
@@ -101,7 +102,8 @@ if_id if_id_mod(
   .id_pc(ifid_pc_wire),
   .id_inst(ifid_inst_wire),
   .jump_i(jump_wire),
-  .jump_com(jump_com_wire)
+  .jump_com(jump_com_wire),
+  .stall2(stall2_wire)
 );
 
 //
@@ -121,8 +123,6 @@ wire[2:0] id_funct_wire;
 wire id_wreg_wire;
 wire[4:0] id_wd_wire;
 wire[31:0] id_imm_wire;
-wire stall2_wire;
-wire id_stall_wire;
 wire wb_en_wire;
 wire[4:0] wb_addr_wire;
 
@@ -144,7 +144,6 @@ id id_mod(
   .wreg_o(id_wreg_wire),
   .wd_o(id_wd_wire),
   .imm_o(id_imm_wire),
-  .stall(stall2_wire),
   .jump_o(jump_wire),
   .jump_addr_o(jump_pc_wire),
   .jump_i(jump_com_wire)
@@ -180,6 +179,7 @@ wire[2:0] idex_funct_wire;
 wire[4:0] idex_wd_wire;
 wire idex_wreg_wire;
 wire[31:0] idex_imm_wire;
+wire stall3_wire;
 
 id_ex id_ex_mod(
   .clk(clk_in),
@@ -199,13 +199,13 @@ id_ex id_ex_mod(
   .ex_funct(idex_funct_wire),
   .ex_wd(idex_wd_wire),
   .ex_wreg(idex_wreg_wire),
-  .ex_imm(idex_imm_wire)
+  .ex_imm(idex_imm_wire),
+  .stall3(stall3_wire)
 );
 
 //
 //ex
 //
-wire stall3_wire;
 wire[2:0] ex_read_wire;
 wire[1:0] ex_write_wire;
 wire[4:0] ex_wd_wire;
@@ -223,7 +223,6 @@ ex ex_mod(
   .wd_i(idex_wd_wire),
   .wreg_i(idex_wreg_wire),
   .imm_i(idex_imm_wire),
-  .stall(stall3_wire),
   .read_o(ex_read_wire),
   .write_o(ex_write_wire),
   .wd_o(ex_wd_wire),
@@ -242,6 +241,7 @@ wire[4:0] exmem_wd_wire;
 wire exmem_wreg_wire;
 wire[31:0] exmem_waddr_wire;
 wire[31:0] exmem_wdata_wire;
+wire stall4_wire;
 
 ex_mem ex_mem(
   .clk(clk_in),
@@ -257,13 +257,13 @@ ex_mem ex_mem(
   .mem_wd(exmem_wd_wire),
   .mem_wreg(exmem_wreg_wire),
   .mem_waddr(exmem_waddr_wire),
-  .mem_wdata(exmem_wdata_wire)
+  .mem_wdata(exmem_wdata_wire),
+  .stall4(stall4_wire)
 );
 
 //
 //mem
 //
-wire stall4_wire;
 wire mem_stall_wire;
 wire[4:0] mem_wd_wire;
 wire mem_wreg_wire;
@@ -286,7 +286,6 @@ mem mem_mod(
   .write_o(write_en_wire),
   .write_addr_o(write_addr_wire),
   .write_data_o(write_data_wire),
-  .stall(stall4_wire),
   .mem_stall(mem_stall_wire),
   .wd_o(mem_wd_wire),
   .wreg_o(mem_wreg_wire),

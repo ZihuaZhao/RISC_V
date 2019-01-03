@@ -15,6 +15,7 @@ module if_id(
     input wire stall2
 );
 reg jump;
+reg stall_reg;
 reg[31:0] pc_reg;
 reg[31:0] inst_reg;
 
@@ -23,15 +24,16 @@ reg[31:0] inst_reg;
             id_pc <= 32'h0;
             id_inst <= 32'h0;
             jump <= 1'b0;
-            jump_com <= 1'b0;
+            jump_com <= 1'b1;
             pc_reg <= 32'h0;
             inst_reg <= 32'h0;
+            stall_reg <= 1'b0;
         end else begin
             if(stall2 == 1'b1) begin
                 id_pc <= 32'h0;
                 id_inst <= 32'h0;
-                jump_com <= 1'b0;
-                if(if_busy_i == 1'b1) begin
+                if(if_busy_i == 1'b0 && if_pc != 32'h0) begin
+                    stall_reg <= 1'b1;
                     pc_reg <= if_pc;
                     inst_reg <= if_inst;
                 end
@@ -40,18 +42,24 @@ reg[31:0] inst_reg;
                     jump <= 1'b1;
                     jump_com <= 1'b0;
                 end
-                if(if_busy_i == 1'b1) begin
-                    id_pc <= 32'h0;
-                    id_inst <= 32'h0;
+                if(stall_reg == 1'b1) begin
+                    stall_reg <= 1'b0;
+                    id_pc <= pc_reg;
+                    id_inst <= inst_reg;
                 end else begin
-                    if(jump == 1'b1) begin
+                    if(if_busy_i == 1'b1) begin
                         id_pc <= 32'h0;
                         id_inst <= 32'h0;
-                        jump <= 1'b0;
-                        jump_com <= 1'b1;
                     end else begin
-                        id_pc <= if_pc;
-                        id_inst <= if_inst;
+                        if(jump == 1'b1) begin
+                            id_pc <= 32'h0;
+                            id_inst <= 32'h0;
+                            jump <= 1'b0;
+                            jump_com <= 1'b1;
+                        end else begin
+                            id_pc <= if_pc;
+                            id_inst <= if_inst;
+                        end
                     end
                 end
             end
