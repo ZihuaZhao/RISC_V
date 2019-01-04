@@ -27,7 +27,6 @@ module id(
     output reg[31:0] jump_addr_o
 );
 integer i;
-integer j;
 //imm
 reg[31:0] imm_reg;
 
@@ -43,7 +42,6 @@ reg[31:0] imm_reg;
             wd_o = 5'h0;
             imm_reg = 32'h0;
             imm_o = 32'h0;
-            j = 0;     
         end else begin
             reg1_read_o = 1'b0;
             reg1_addr_o = inst_i[19:15];
