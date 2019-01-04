@@ -21,7 +21,7 @@ reg[31:0] regs[31:0];
     //write
     always@(posedge clk) begin
         if(rst == 1'b0) begin
-            if(we != 1'b0) begin
+            if(we != 1'b0 && waddr != 5'b0) begin
                 regs[waddr] <= wdata;
             end
         end else begin

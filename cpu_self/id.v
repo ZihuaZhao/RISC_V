@@ -27,6 +27,7 @@ module id(
     output reg[31:0] jump_addr_o
 );
 integer i;
+integer j;
 //imm
 reg[31:0] imm_reg;
 
@@ -41,7 +42,8 @@ reg[31:0] imm_reg;
             wreg_o = 1'b0;
             wd_o = 5'h0;
             imm_reg = 32'h0;
-            imm_o = 32'h0;     
+            imm_o = 32'h0;
+            j = 0;     
         end else begin
             reg1_read_o = 1'b0;
             reg1_addr_o = inst_i[19:15];
@@ -70,55 +72,37 @@ reg[31:0] imm_reg;
                 reg1_read_o = 1'b0;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {11'h0 , inst_i[31] , inst_i[19:12] , inst_i[20] , inst_i[30:21] , 1'b0};
-                for(i = 21 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[20];
-                end
+                imm_reg = {{11{inst_i[31]}} , inst_i[31] , inst_i[19:12] , inst_i[20] , inst_i[30:21] , 1'b0};
             end
             `JALR: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
-                for(i = 12 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[11];
-                end
+                imm_reg = {{20{inst_i[31]}} , inst_i[31:20]};
             end
             `B_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b1;
                 wreg_o = 1'b0;
-                imm_reg = {19'h0 , inst_i[31] , inst_i[7] , inst_i[30:25] , inst_i[11:8] , 1'b0};
-                for(i = 13 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[12];
-                end
+                imm_reg = {{19{inst_i[31]}} , inst_i[31] , inst_i[7] , inst_i[30:25] , inst_i[11:8] , 1'b0};
             end
             `L_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
-                for(i = 12 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[11];
-                end
+                imm_reg = {{20{inst_i[31]}} , inst_i[31:20]};
             end
             `S_command: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b1;
                 wreg_o = 1'b0;
-                imm_reg = {20'h0 , inst_i[31:25] , inst_i[11:7]};
-                for(i = 12 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[11];
-                end
+                imm_reg = {{20{inst_i[31]}} , inst_i[31:25] , inst_i[11:7]};
             end
             `REG_IMM: begin
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 wreg_o = 1'b1;
-                imm_reg = {20'h0 , inst_i[31:20]};
-                for(i = 12 ; i < 32 ; i = i + 1) begin
-                    imm_reg[i] = imm_reg[11];
-                end
+                imm_reg = {{20{inst_i[31]}} , inst_i[31:20]};
             end
             `REG_REG: begin
                 reg1_read_o = 1'b1;
@@ -150,7 +134,7 @@ reg[31:0] imm_reg;
                 reg2_o = reg2_data_i;
             end
             //jump problem
-            if(jump_i == 1'b1) begin
+            if(jump_i == 1'b1) begin 
                 if(opcode == `JAL) begin
                     jump_o = 1'b1;
                     jump_addr_o = pc_i + imm_reg;
@@ -189,7 +173,7 @@ reg[31:0] imm_reg;
                         end
                     end
                     if(funct == `BLTU) begin
-                        if((reg1_o) < (reg2_o)) begin
+                        if(reg1_o < reg2_o) begin
                              jump_o = 1'b1;
                              jump_addr_o = pc_i + imm_reg;
                         end else begin
@@ -198,21 +182,21 @@ reg[31:0] imm_reg;
                         end
                     end
                     if(funct == `BGE) begin
-                        if(reg2_o < reg1_o) begin
-                            jump_o = 1'b1;
-                            jump_addr_o = pc_i + imm_reg;
-                        end else begin
+                        if($signed(reg1_o) < $signed(reg2_o)) begin
                             jump_o = 1'b0;
                             jump_addr_o = 32'h0;
+                        end else begin
+                            jump_o = 1'b1;
+                            jump_addr_o = pc_i + imm_reg;
                         end
                     end
                     if(funct == `BGEU) begin
-                       if($signed(reg2_o) < $signed(reg1_o)) begin
-                            jump_o = 1'b1;
-                            jump_addr_o = pc_i + imm_reg;
-                        end else begin
+                       if(reg1_o < reg2_o) begin
                             jump_o = 1'b0;
                             jump_addr_o = 32'h0;
+                        end else begin
+                            jump_o = 1'b1;
+                            jump_addr_o = pc_i + imm_reg;
                         end
                     end
                 end

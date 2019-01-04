@@ -37,7 +37,7 @@ module ex(
             case(opcode_i)
             `LUI:
                 wdata_o = imm_i;
-            `AUIPC: //??pc changed??
+            `AUIPC:
                 wdata_o = imm_i + pc_i;
             `JAL: 
                 wdata_o = pc_i + 4'h4;
